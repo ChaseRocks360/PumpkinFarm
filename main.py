@@ -4,7 +4,6 @@ import win32api
 import win32con
 import pyautogui
 import keyboard  # Import the keyboard library
-import os  # Import os library to kill the command prompt
 
 # Function to capture the screen
 def capture_screen():
@@ -22,52 +21,60 @@ def contains_orange_block(image, target_color=(224, 136, 29)):
                 return True
     return False
 
+# Function to simulate pressing a key
+def press_key(key_code):
+    win32api.keybd_event(key_code, 0, 0, 0)
+    time.sleep(0.1)  # Add a small delay to ensure key press is registered
+    win32api.keybd_event(key_code, 0, win32con.KEYEVENTF_KEYUP, 0)
+
 # Initialize variables
-no_orange_block_time = 0
+no_orange_block_start_time = None
 last_checked = time.time()
 
 # Main loop
 while True:
     if keyboard.is_pressed('F7'):  # Check if F7 is pressed to stop the script
         print("F7 pressed. Exiting script.")
-        os._exit(1)  # Exit the script
+        break
 
     image = capture_screen()
 
     if contains_orange_block(image):
-        no_orange_block_time = 0
+        no_orange_block_start_time = None  # Reset the start time if orange is detected
     else:
-        no_orange_block_time += 1
+        if no_orange_block_start_time is None:
+            no_orange_block_start_time = time.time()  # Start the timer if not already started
+        else:
+            if time.time() - no_orange_block_start_time >= 5:  # Check if 5 seconds have passed
+                print("No orange block detected for 5 seconds. Pressing F8 to start the macro.")
 
-    if no_orange_block_time >= 5:
-        # Press F8 to stop the macro
-        win32api.keybd_event(win32con.VK_F8, 0, 0, 0)
-        win32api.keybd_event(win32con.VK_F8, 0, win32con.KEYEVENTF_KEYUP, 0)
+                # Press F8 to stop the macro
+                press_key(win32con.VK_F8)
 
-        # Wait 2 seconds
-        time.sleep(2)
+                # Wait 2 seconds to ensure F8 key press is registered
+                time.sleep(2)
 
-        # Press "T" key
-        pyautogui.press('t')
+                # Press "T" key
+                pyautogui.press('t')
 
-        # Type "/garden"
-        pyautogui.typewrite('/garden')
-        pyautogui.press('enter')
+                # Type "/garden"
+                pyautogui.typewrite('/garden')
+                pyautogui.press('enter')
 
-        # Wait 2 seconds
-        time.sleep(2)
+                # Wait 2 seconds
+                time.sleep(2)
 
-        # Press F8 again to start the macro
-        win32api.keybd_event(win32con.VK_F8, 0, 0, 0)
-        win32api.keybd_event(win32con.VK_F8, 0, win32con.KEYEVENTF_KEYUP, 0)
+                # Press F8 again to start the macro
+                print("Pressing F8 again to start the macro.")
+                press_key(win32con.VK_F8)
 
-        # Reset the timer after typing the command and pressing F8
-        no_orange_block_time = 0
+                # Reset the start time after typing the command and pressing F8
+                no_orange_block_start_time = None
 
     # Check the screen every second
     while time.time() - last_checked < 1:
         if keyboard.is_pressed('F7'):  # Check again if F7 is pressed while waiting
             print("F7 pressed. Exiting script.")
-            os._exit(1)  # Exit the script
+            break
         time.sleep(0.01)
     last_checked = time.time()
