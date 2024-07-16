@@ -4,6 +4,7 @@ import win32api
 import win32con
 import pyautogui
 import keyboard  # Import the keyboard library
+import os  # Import os library to kill the command prompt
 
 # Function to capture the screen
 def capture_screen():
@@ -29,7 +30,7 @@ last_checked = time.time()
 while True:
     if keyboard.is_pressed('F7'):  # Check if F7 is pressed to stop the script
         print("F7 pressed. Exiting script.")
-        break
+        os._exit(1)  # Exit the script
 
     image = capture_screen()
 
@@ -39,8 +40,12 @@ while True:
         no_orange_block_time += 1
 
     if no_orange_block_time >= 5:
-        # Wait 5 seconds
-        time.sleep(5)
+        # Press F8 to stop the macro
+        win32api.keybd_event(win32con.VK_F8, 0, 0, 0)
+        win32api.keybd_event(win32con.VK_F8, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+        # Wait 2 seconds
+        time.sleep(2)
 
         # Press "T" key
         pyautogui.press('t')
@@ -48,10 +53,6 @@ while True:
         # Type "/garden"
         pyautogui.typewrite('/garden')
         pyautogui.press('enter')
-
-        # Press F8 to stop the macro
-        win32api.keybd_event(win32con.VK_F8, 0, 0, 0)
-        win32api.keybd_event(win32con.VK_F8, 0, win32con.KEYEVENTF_KEYUP, 0)
 
         # Wait 2 seconds
         time.sleep(2)
@@ -67,6 +68,6 @@ while True:
     while time.time() - last_checked < 1:
         if keyboard.is_pressed('F7'):  # Check again if F7 is pressed while waiting
             print("F7 pressed. Exiting script.")
-            break
+            os._exit(1)  # Exit the script
         time.sleep(0.01)
     last_checked = time.time()
